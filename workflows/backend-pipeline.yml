@@ -1,0 +1,34 @@
+# .github/workflows/backend-pipeline.yml
+name: Pipeline Backend Padrão
+
+on:
+  workflow_call:
+    inputs:
+      db-migration:
+        type: boolean
+        default: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      NODE_ENV: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+      - run: npm ci --production
+      - run: npm run build
+      - uses: actions/upload-artifact@v3
+        with:
+          name: build-output
+          path: dist/
+
+  database:
+    if: ${{ inputs.db-migration }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm run migrate

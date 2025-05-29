@@ -1,0 +1,25 @@
+# cliente/.github/workflows/deploy-prod.yml
+name: Deploy Produção
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  frontend:
+    uses: govinda777/.github/.github/workflows/frontend-pipeline.yml@main
+    with:
+      environment: 'prod'
+    secrets:
+      DEPLOY_KEY: ${{ secrets.PROD_KEY }}
+
+  backend:
+    uses: govinda777/.github/.github/workflows/backend-pipeline.yml@main
+    with:
+      db-migration: true
+
+  blockchain:
+    needs: [backend]
+    uses: govinda777/.github/.github/workflows/blockchain-pipeline.yml@main
+    with:
+      network: 'mainnet'

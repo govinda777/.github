@@ -1,0 +1,39 @@
+# .github/workflows/blockchain-pipeline.yml
+name: Pipeline Blockchain
+
+on:
+  workflow_call:
+    inputs:
+      network:
+        required: true
+        type: choice
+        options: [localhost, testnet, mainnet]
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - run: npm ci
+      - run: npx hardhat compile
+      - uses: actions/upload-artifact@v3
+        with:
+          name: artifacts
+          path: artifacts/
+
+  test:
+    needs: compile
+    runs-on: ubuntu-latest
+    services:
+      hardhat-node:
+        image: hardhat-network
+        ports:
+          - 8545:8545
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: artifacts
+      - run: npx hardhat test --network localhost
